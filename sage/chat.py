@@ -103,7 +103,7 @@ def main():
                 sources = [(doc.metadata["file_path"], doc.metadata["url"]) for doc in event["data"]["output"]]
                 # Deduplicate while preserving the order.
                 sources = list(dict.fromkeys(sources))
-                response += "## Sources:\n" + "\n".join([source_md(s[0], s[1]) for s in sources]) + "\n## Response:\n"
+                response += "## Sources:\n" + "\n".join([source_md(s[0], s[1]) for s in sources]) + "\n\n"
 
             elif event["event"] == "on_chat_model_stream":
                 chunk = event["data"]["chunk"].content
