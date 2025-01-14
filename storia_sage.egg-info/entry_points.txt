@@ -1,0 +1,3 @@
+[console_scripts]
+sage-chat = sage.chat:main
+sage-index = sage.index:main

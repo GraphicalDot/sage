@@ -13,7 +13,6 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_voyageai import VoyageAIEmbeddings
 from pydantic import Field
-
 from sage.code_symbols import get_code_symbols
 from sage.data_manager import DataManager, GitHubRepoManager
 from sage.llm import build_llm_via_langchain
@@ -305,6 +304,177 @@ DO NOT RESPOND TO THE USER QUERY DIRECTLY. Instead, respond with full paths to r
         return None
 
 
+
+# class DeepseekRetriever(BaseRetriever):
+#     """Custom Langchain retriever that uses Deepseek VSCode model hosted on Together.ai"""
+
+#     repo_manager: GitHubRepoManager = Field(...)
+#     top_k: int = Field(...)
+#     model_name: str = Field(default="deepseek-ai/deepseek-coder-6.7b-instruct")
+#     temperature: float = Field(default=0.1)
+#     max_tokens: int = Field(default=1024)
+
+#     def __init__(self, repo_manager: GitHubRepoManager, top_k: int):
+#         """Initialize the retriever with repository manager and configuration.
+        
+#         Args:
+#             repo_manager: Manager for the GitHub repository
+#             top_k: Number of files to retrieve
+#         """
+#         super().__init__()
+#         self.repo_manager = repo_manager
+#         self.top_k = top_k
+
+#         # Ensure Together API key is set
+#         if not together.api_key:
+#             raise ValueError("Please set the TOGETHER_API_KEY environment variable")
+
+#         # Cache repo metadata and files
+#         self.cached_repo_metadata = None
+#         self.cached_repo_files = None
+#         self.cached_repo_hierarchy = None
+
+#     def _get_relevant_documents(
+#         self, 
+#         query: str, 
+#         *, 
+#         run_manager: CallbackManagerForRetrieverRun
+#     ) -> List[Document]:
+#         """Retrieve relevant documents for a given query.
+        
+#         Args:
+#             query: The user query
+#             run_manager: Callback manager
+            
+#         Returns:
+#             List of relevant documents
+#         """
+#         filenames = self._ask_model_to_retrieve(user_query=query, top_k=self.top_k)
+#         documents = []
+        
+#         for filename in filenames:
+#             if filename in self.repo_files:
+#                 document = Document(
+#                     page_content=self.repo_manager.read_file(filename),
+#                     metadata={
+#                         "file_path": filename,
+#                         "url": self.repo_manager.url_for_file(filename)
+#                     }
+#                 )
+#                 documents.append(document)
+                
+#         return documents
+
+#     def _ask_model_to_retrieve(self, user_query: str, top_k: int) -> List[str]:
+#         """Query the Deepseek model to identify relevant files.
+        
+#         Args:
+#             user_query: The user's question
+#             top_k: Number of files to retrieve
+            
+#         Returns:
+#             List of relevant file paths
+#         """
+#         prompt = f"""You are a code search assistant. Given a file hierarchy and a query, your task is to return the {top_k} most relevant file paths that would help answer the query.
+# Only return the file paths, one per line. Do not include any other text or explanations.
+
+# File hierarchy:
+# {self.repo_hierarchy}
+
+# Query: {user_query}
+
+# Relevant files:"""
+
+#         # Call Together API
+#         response = together.Complete.create(
+#             prompt=prompt,
+#             model=self.model_name,
+#             max_tokens=self.max_tokens,
+#             temperature=self.temperature
+#         )
+
+#         # Extract file paths from response
+#         file_paths = []
+#         if response.output and response.output.text:
+#             # Split response into lines and clean up
+#             paths = response.output.text.strip().split('\n')
+#             paths = [p.strip() for p in paths if p.strip()]
+            
+#             # Validate and fix paths
+#             for path in paths[:top_k]:
+#                 if path not in self.repo_files:
+#                     fixed_path = self._fix_filename(path, self.repo_manager.repo_id)
+#                     if fixed_path and fixed_path in self.repo_files:
+#                         file_paths.append(fixed_path)
+#                 else:
+#                     file_paths.append(path)
+
+#         return file_paths
+
+#     @property
+#     def repo_metadata(self):
+#         """Get repository metadata, computing it if not cached."""
+#         if not self.cached_repo_metadata:
+#             self.cached_repo_metadata = [
+#                 metadata for metadata in self.repo_manager.walk(get_content=False)
+#             ]
+#         return self.cached_repo_metadata
+
+#     @property
+#     def repo_files(self):
+#         """Get repository files, computing them if not cached."""
+#         if not self.cached_repo_files:
+#             self.cached_repo_files = set(
+#                 metadata["file_path"] for metadata in self.repo_metadata
+#             )
+#         return self.cached_repo_files
+
+#     @property 
+#     def repo_hierarchy(self):
+#         """Get repository hierarchy string, computing if not cached."""
+#         if not self.cached_repo_hierarchy:
+#             # Render full hierarchy
+#             render = self._render_file_hierarchy(
+#                 self.repo_metadata,
+#                 include_classes=True,
+#                 include_methods=True
+#             )
+#             self.cached_repo_hierarchy = render
+#         return self.cached_repo_hierarchy
+
+#     def _fix_filename(self, filename: str, repo_id: str) -> str:
+#         """Fix common issues with model-generated filenames.
+        
+#         Args:
+#             filename: The filename to fix
+#             repo_id: Repository identifier
+            
+#         Returns:
+#             Fixed filename or None if unfixable
+#         """
+#         if filename.startswith("/"):
+#             filename = filename[1:]
+            
+#         org_name, repo_name = repo_id.split("/")
+#         items = filename.split("/")
+        
+#         if filename.startswith(org_name) and not filename.startswith(repo_id):
+#             new_items = [org_name, repo_name] + items[1:]
+#             return "/".join(new_items)
+            
+#         if not filename.startswith(org_name) and filename.startswith(repo_name):
+#             return f"{org_name}/{filename}"
+            
+#         if not filename.startswith(org_name) and not filename.startswith(repo_name):
+#             return f"{org_name}/{repo_name}/{filename}"
+            
+#         return filename
+
+
+
+
+
+
 class RerankerWithErrorHandling(BaseRetriever):
     """Wraps a `ContextualCompressionRetriever` to catch errors during inference.
 
@@ -326,7 +496,7 @@ class RerankerWithErrorHandling(BaseRetriever):
 def build_retriever_from_args(args, data_manager: Optional[DataManager] = None):
     """Builds a retriever (with optional reranking) from command-line arguments."""
     if args.llm_retriever:
-        retriever = LLMRetriever(GitHubRepoManager.from_args(args), top_k=args.retriever_top_k)
+        retriever = DeepseekRetriever(GitHubRepoManager.from_args(args), top_k=args.retriever_top_k)
     else:
         if args.embedding_provider == "openai":
             embeddings = OpenAIEmbeddings(model=args.embedding_model)

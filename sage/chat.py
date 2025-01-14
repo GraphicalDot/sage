@@ -117,6 +117,7 @@ def main():
                     response += chunk
                     yield response
 
+    gr.Markdown("# Pyano ai16z eliza agent")
     gr.ChatInterface(
         _predict,
         title=args.repo_id,

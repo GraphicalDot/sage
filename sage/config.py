@@ -221,7 +221,7 @@ def add_reranking_args(parser: ArgumentParser) -> Callable:
 
 def add_llm_args(parser: ArgumentParser) -> Callable:
     """Adds language model-related arguments to the parser."""
-    parser.add("--llm-provider", default="ollama", choices=["openai", "anthropic", "ollama"])
+    parser.add("--llm-provider", default="ollama", choices=["openai", "anthropic", "ollama", "together"])
     parser.add(
         "--llm-model",
         help="The LLM name. Must be supported by the provider specified via --llm-provider.",
@@ -375,10 +375,15 @@ def validate_vector_store_args(args):
     """Validates the configuration of the vector store and sets defaults."""
     if args.llm_retriever:
         if not os.getenv("ANTHROPIC_API_KEY"):
-            raise ValueError(
-                "Please set the ANTHROPIC_API_KEY environment variable to use the LLM retriever. "
-                "(We're constrained to Claude because we need prompt caching.)"
+            print(
+                "going to use TOGETHER_API_KEY environment variable to use the LLM retriever. "
             )
+        
+            if not os.getenv("TOGETHER_API_KEY"):
+                raise ValueError(
+                    "Please set the TOGETHER_API_KEY environment variable to use the LLM retriever. "
+                    "(We're constrained to Claude because we need prompt caching.)"
+                )
 
         if args.index_issues:
             # The LLM retriever only makes sense on the code repository, since it passes file paths to the LLM.

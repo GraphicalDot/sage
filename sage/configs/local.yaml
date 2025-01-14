@@ -1,3 +1,7 @@
+
+TOGETHER_API_KEY: 88a4113810895f0b4f9e32d399fccdd96eefa7dba38d33e1c76c67baa42efc45
+
+
 # Embeddings
 embedding-provider: marqo
 embedding-model: hf/e5-base-v2
@@ -8,8 +12,8 @@ chunks-per-batch: 64
 vector-store-provider: marqo
 
 # LLM
-llm-provider: ollama
-llm-model: llama3.1
+llm-provider: together
+llm-model: deepseek-ai/DeepSeek-V3
 
 # Reranking
 reranking-provider: huggingface
