@@ -70,9 +70,12 @@ class VectorStore(ABC):
         batch = []
         for metadata, embedding in vectors:
             batch.append((metadata, embedding))
-            if len(batch) == 100:
+            if len(batch) >= 100:  # Changed == to >=
+                print ("Adding new batch to vectorstore")
                 self.upsert_batch(batch, namespace)
                 batch = []
+        
+        # Handle any remaining items in the final batch
         if batch:
             self.upsert_batch(batch, namespace)
 

@@ -53,15 +53,15 @@ def main():
     # Step 1: Embeddings #
     ######################
 
-    # Index the repository.
-    repo_embedder = None
-    if args.index_repo:
-        logging.info("Cloning the repository...")
-        repo_manager = GitHubRepoManager.from_args(args)
-        logging.info("Embedding the repo...")
-        chunker = UniversalFileChunker(max_tokens=args.tokens_per_chunk)
-        repo_embedder = build_batch_embedder_from_flags(repo_manager, chunker, args)
-        repo_jobs_file = repo_embedder.embed_dataset(args.chunks_per_batch, args.max_embedding_jobs)
+    # # Index the repository.
+    # repo_embedder = None
+    # if args.index_repo:
+    logging.info("Cloning the repository...")
+    repo_manager = GitHubRepoManager.from_args(args)
+    logging.info("Embedding the repo...")
+    chunker = UniversalFileChunker(max_tokens=args.tokens_per_chunk)
+    repo_embedder = build_batch_embedder_from_flags(repo_manager, chunker, args)
+    repo_jobs_file = repo_embedder.embed_dataset(args.chunks_per_batch, args.max_embedding_jobs)
 
     # Index the GitHub issues.
     issues_embedder = None
@@ -80,10 +80,10 @@ def main():
     # Step 2: Vector Store #
     ########################
 
-    if args.vector_store_provider == "marqo":
-        # Marqo computes embeddings and stores them in the vector store at once, so we're done.
-        logging.info("Done!")
-        return
+    # if args.vector_store_provider == "marqo":
+    #     # Marqo computes embeddings and stores them in the vector store at once, so we're done.
+    #     logging.info("Done!")
+    #     return
 
     if repo_embedder is not None:
         logging.info("Waiting for repo embeddings to be ready...")
